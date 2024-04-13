@@ -48,7 +48,7 @@ var currency = 0; // Initialize currency variable
 
 //<----------------------------------------------------------------------( Preload Assets )--------------------------------------------------------------------------------------------------------------->
 function preload () {
-    this.load.image('sky', 'assets/skybig.png');
+    this.load.image('sky', 'assets/skyBig.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('walls', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
