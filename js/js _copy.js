@@ -23,6 +23,7 @@ var config = {
 var game = new Phaser.Game(config);
 
 //<----------------------------------------------------------------------( Global Variables )------------------------------------------------------------------------------------------------------------->
+let sky;
 
 var player;
 var stars;
@@ -30,6 +31,7 @@ var bombs;
 var platforms;
 var walls;
 var cursors;
+let keyA, keyS, keyD, keyW;
 var score = 0;
 var gameOver = false;
 var scoreText;
@@ -39,16 +41,24 @@ var thrust = -800;
 var wings; // Initialize wings variable
 var button1; // Initialize button1 variable
 var button1state = false; // Set button1 state to false
+var button2; // Initialize button1 variable
+var button2state = false; // Set button1 state to false
+
 var shop1; // Initialize vendors variable
 var coin; // Initialize coin variable
 var currencyText;
 var currency = 0; // Initialize currency variable
+var launchPad; // Initialize launch pad variable
+
+//<----------------------------------------------------------------------(Change costs easy from here)------------------------------------------------------------------------------------------------------------->
+var wings1Cost = 10; // Set wings cost to 25
+var launchPad1Cost = 20; // Set launch pad cost to 100
 
 
 
-//<----------------------------------------------------------------------( Preload Assets )--------------------------------------------------------------------------------------------------------------->
+//<----------------------------------------------------------------------( Preload Assets )------------------------------------------------------------------------------------#FFFF00------#FFFF00-------->
 function preload () {
-    this.load.image('sky', 'assets/skyBig.png');
+    this.load.image('sky', 'assets/skybig.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('walls', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
@@ -57,13 +67,18 @@ function preload () {
     this.load.image("shop1", "assets/shop1.png");
     this.load.image('wings', 'assets/wings.png');
     this.load.image('coin', 'assets/coin.png');
+    this.load.image('launchPad', 'assets/launchPad.png');
+    this.load.image('launchPad1', 'assets/launchPad1.png');
 }
-//<00000000000000000000000000000000000000000000000000000000000000000000000000000000000( Create Game Elements )00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000>
+//<00000000000000000000000000000000000000000000000000000000000000000000000000000000000( Create Game Elements  )00000000000000000000000000000000000000000000000000000000 #00E1FF 0000000000 #00E1FF 00000000>
 function create () {
 
 // <---------------------------------( Background )--------------------------------------------->
-    this.add.image(400, 300, 'sky').setDepth(-10);
-// <---------------------------------( Platforms )--------------------------------------------->
+    //this.add.image(400, 300, 'sky').setDepth(-10);
+    sky = this.add.tileSprite(400, 300, 800, 600, 'sky');
+    sky.setDepth(-10); // Set the depth of the sky to -10 to ensure it's behind everything else
+
+    // <---------------------------------( Platforms )--------------------------------------------->
     platforms = this.physics.add.staticGroup();
     platforms.create(-100, 400, 'ground').setScale(2).refreshBody();
     platforms.create(100, 400, 'ground').setScale(2).refreshBody();
@@ -72,6 +87,9 @@ function create () {
     coin = this.add.image(-200, 400, 'coin');
     shop1 = this.add.image(-370, 270, 'shop1');
     //.setScale(2).refreshBody()
+    //<----------------------------------(launchPads)-------------------------------------------->
+    launchPad = this.physics.add.staticGroup();
+    launchPad.create(0, 343, 'launchPad');
 
 // <---------------------------------( Walls )--------------------------------------------->
     const wall = platforms.create(500, 0, 'walls');
@@ -90,8 +108,9 @@ leftWall.refreshBody(); // Refresh the body to apply changes
     //player.setBounce(0.2);
     this.physics.world.setBounds(0, 0, 800, 600, true, true, true, true);
 
-        launchButton = this.add.text(100, 100, 'Launch', { fill: 'brown' }).setInteractive();
+        launchButton = this.add.text(-25, 370, 'Launch', { fill: 'brown' }).setInteractive();
         launchButton.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
+        launchButton.setVisible(false);
         
         launchButton.on('pointerdown', function() {
             launchButton.setStyle({ backgroundColor: '#f00' });
@@ -104,7 +123,6 @@ leftWall.refreshBody(); // Refresh the body to apply changes
 //<----------------------------------(wings)-------------------------------------------->
 wings = this.add.image(player.x, player.y, 'wings');
 wings.setDepth(-0.1); // Ensure wings are behind the player
-//<----------------------------------(wnigs 2)-------------------------------------------->
 
 
 // <---------------------------------( Display player coordinates )--------------------------------------------->
@@ -152,6 +170,11 @@ this.events.on('postupdate', function () {
 // <---------------------------------( Input events )--------------------------------------------->
     cursors = this.input.keyboard.createCursorKeys();
 
+    keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+
 
 // <---------------------------------( Stars )--------------------------------------------->
     stars = this.physics.add.group({
@@ -176,11 +199,14 @@ this.events.on('postupdate', function () {
 
 
 // <---------------------------------( Collisions )--------------------------------------------->
-    this.physics.add.collider(player, platforms);
+    this.physics.add.collider(player, platforms,);
     this.physics.add.collider(stars, platforms);
     //this.physics.add.collider(bombs, platforms);
     this.physics.add.overlap(player, stars, collectStar, null, this);
     //this.physics.add.collider(player, bombs, hitBomb, null, this);
+    this.physics.add.collider(player, launchPad);
+    this.physics.add.collider(stars, launchPad);
+    //this.physics.add.collider(bombs, launchPad);
 
 
 // <---------------------------------( Camera follow )--------------------------------------------->
@@ -218,7 +244,7 @@ this.events.on('postupdate', function () {
             thrustInfoText.setPosition(player.x + 50, player.y - 30); // Update the position  
 
         });
-            button1 = this.add.text(-440, 200, 'Button Text', { fill: '#0f0' }).setInteractive();
+            button1 = this.add.text(-440, 200, 'testWings', { fill: '#0f0' }).setInteractive();
             // Customize button style
             button1.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
             button1.setVisible(false); // Show button initially
@@ -229,6 +255,18 @@ this.events.on('postupdate', function () {
                 console.log('Button clicked!');
                 makewings();
                 button1state = true; // button has been pressed so - Set button1 state to true
+            });
+            button2 = this.add.text(-440, 250, 'testPlatform', { fill: '#0f0' }).setInteractive();
+            // Customize button style
+            button2.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
+            button2.setVisible(false); // Show button initially
+            wings.setVisible(false); // Hide wings initially
+            // Add event listener for button click
+            button2.on('pointerdown', function() {
+                // Your button click logic here
+                console.log('Button clicked!');
+                makePad();
+                button2state = true; // button has been pressed so - Set button1 state to true
             });
 
 
@@ -255,16 +293,23 @@ function updateCurrency() {
 
 
 
-//<00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000( Update Game State #00f)00000000000000000000000000000000000000000000000000000000000000000000000000000>
+//<00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000( Update Game State )000000000000000000000000000000000000000000000000 #FF0000 000000000 #FF0000 000>
 
 function update () {
+    sky.tilePositionY -= 0.5;
+
     updateScore();
     scoreText.setText('Height: ' + score);
 
-    if (player.x < -270 && player.x > -460 && button1state === false && currency > 25 ){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (player.x < -270 && player.x > -460 && button1state === false && currency > wings1Cost ){  // add money requirement here to buy wings<-----------------------------------------------------
         button1.setVisible(true); // Show the button
     } else {
         button1.setVisible(false); // Hide the button
+    }
+    if (player.x < -270 && player.x > -460 && button2state === false && currency > launchPad1Cost ){  // add money requirement here to buy wings<-----------------------------------------------------
+        button2.setVisible(true); // Show the button
+    } else {
+        button2.setVisible(false); // Hide the button
     }
     if (gameOver) {
         //return;
@@ -272,18 +317,34 @@ function update () {
         restartButton.setVisible(true);
         }, 3000); 
     }
-  
+    if (player.x > -91 && player.x < 91){ 
+        launchButton.setVisible(true); 
+    }else{
+        launchButton.setVisible(false);
+    }
+    
 
-    this.input.keyboard.on('keydown-A', listener)
-    function listener() {
+    // this.input.keyboard.on('keydown-A', listener)
+    // function listener() {
+    //     player.setVelocityX(-160);
+    //     player.anims.play('left', true);
+    // };
+
+    // if (cursors.left.isDown) {
+    //     player.setVelocityX(-160);
+    //     player.anims.play('left', true);
+    // } else if (cursors.right.isDown) {
+    //     player.setVelocityX(160);
+    //     player.anims.play('right', true);
+    // } else {
+    //     player.setVelocityX(0);
+    //     player.anims.play('turn');
+    // }
+    
+    if (cursors.left.isDown || keyA.isDown) {
         player.setVelocityX(-160);
         player.anims.play('left', true);
-    };
-
-    if (cursors.left.isDown) {
-        player.setVelocityX(-160);
-        player.anims.play('left', true);
-    } else if (cursors.right.isDown) {
+    } else if (cursors.right.isDown || keyD.isDown) {
         player.setVelocityX(160);
         player.anims.play('right', true);
     } else {
@@ -291,9 +352,11 @@ function update () {
         player.anims.play('turn');
     }
 
-    if (cursors.up.isDown && player.body.touching.down)
+
+
+    if (cursors.up.isDown && player.body.touching.down || keyW.isDown && player.body.touching.down)
     {
-        player.setVelocityY(-330); // this goes down every second, if player touches something midFlight, it will substract points from the velocity, if velocity 0 game ends. 
+        player.setVelocityY(-200); // this goes down every second, if player touches something midFlight, it will substract points from the velocity, if velocity 0 game ends. 
     }
     //updateScore();
     updateCurrency();
@@ -334,9 +397,9 @@ if (player.body.velocity.y > 0 && player.y < -20) {
     }, 2500);
 }
 
-    if (!player.body.onFloor() && cursors.left.isDown) { // Check if the player is not on the floor and the left arrow key is pressed
+    if (!player.body.onFloor() && cursors.left.isDown || !player.body.onFloor() && keyA.isDown ) { // Check if the player is not on the floor and the left arrow key is pressed
         player.setAngle(-45); // Rotate the player sprite 90 degrees
-    } else if (!player.body.onFloor() && cursors.right.isDown) { // Check if the player is not on the floor and the right arrow key is pressed
+    } else if (!player.body.onFloor() && cursors.right.isDown || !player.body.onFloor() && keyD.isDown ) { // Check if the player is not on the floor and the right arrow key is pressed
         player.setAngle(45); // Rotate the player sprite -90 degrees
     } else {
         player.setAngle(0); // Reset the player sprite angle
@@ -345,10 +408,22 @@ if (player.body.velocity.y > 0 && player.y < -20) {
    
     player.previousY = player.y;
 
-}
+    // if (player.x < -20) {
+    //     launchButton.setVisible(true);
+    // }
+    const cameraScrollX = this.cameras.main.scrollX;
+    const cameraScrollY = this.cameras.main.scrollY;
+
+    // Set the position of the sky background to match the camera's position
+    sky.tilePositionX = cameraScrollX * 0.3; // Adjust the speed as needed
+    sky.tilePositionY = cameraScrollY * 0.3; // Adjust the speed as needed
+    sky.x = 200 + cameraScrollX;
+    sky.y = 375 + cameraScrollY;
+
+}//<---------------------------------------------------------------------------------------------------( Update Ends )----------------------------------#FF0000 ----------- #FF0000---------------------->
 
 
-//<----------------------------------------------------------------------( Collect Stars )-------------------------------------------------------------------------------------------------------------->
+//<---------------------------------------------------( Collect Stars )------------------------------>
 function collectStar (player, star) {
     star.disableBody(true, true);
     //score -= 550;
@@ -368,7 +443,7 @@ function collectStar (player, star) {
     }
 }
 
-//<----------------------------------------------------------------------( have no idea what this is )------------------------------------------------------------------------------------------------------->
+//<------------------------------------------( have no idea what this is )----------------------------->
 
     // Initialize the currentScene variable when the Phaser game starts
     window.onload = function () {
@@ -382,5 +457,16 @@ function collectStar (player, star) {
         wings.setAngle(player.angle); // Update wings angle to match the player's angle
         wings.setVisible(true); // Show the wings
         thrust -= 100; // Increase the score by 100
+        currency -= wings1Cost; // Subtract the cost of the wings from the currency
         button1.setVisible(false); // Hide the button
+    }
+    function makePad() {
+        // Update wings position to follow the player with a slight offset
+        // Update the texture of the launchPad group
+        launchPad.getChildren().forEach(function(child) {
+            child.setTexture('launchPad1');
+        });
+        thrust -= 200; // Increase the score by 100
+        currency -= launchPad1Cost; // Subtract the cost of the wings from the currency
+        button2.setVisible(false); // Hide the button
     }
