@@ -38,7 +38,7 @@ var scoreText;
 var launchButton;
 var restartButton; // New restart button variable
 var thrust = -800;
-var wings; // Initialize wings variable
+var wings; // Initialize wings variablea
 var button1; // Initialize button1 variable
 var button1state = false; // Set button1 state to false
 var button2; // Initialize button1 variable
@@ -58,7 +58,7 @@ var launchPad1Cost = 20; // Set launch pad cost to 100
 
 //<----------------------------------------------------------------------( Preload Assets )------------------------------------------------------------------------------------#FFFF00------#FFFF00-------->
 function preload () {
-    this.load.image('sky', 'assets/skybig.png');
+    this.load.image('sky', 'assets/sky.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('walls', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
