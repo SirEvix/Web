@@ -38,6 +38,10 @@ var restartButton; // New restart button variable
 var thrust = -800;
 var wings;
 
+var bombTimer;
+var bombInterval = 500; // Interval between bomb spawns in milliseconds
+var bombDuration = 3000; // Duration for which bombs are visible in milliseconds
+
 
 //<----------------------------------------------------------------------( Preload Assets )--------------------------------------------------------------------------------------------------------------->
 function preload () {
@@ -83,9 +87,14 @@ leftWall.refreshBody(); // Refresh the body to apply changes
         launchButton.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
         
         launchButton.on('pointerdown', function() {
-            launchButton.setStyle({ backgroundColor: '#f00' });
-            launchButton.setText('Launch');
+            console.log('You pressed the launch button');
+            //launchButton.setStyle({ backgroundColor: '#f00' });
+            //launchButton.setText('Launch');
             player.setVelocityY(thrust);
+            // Start spawning bombs
+            console.log("bomb has been crerated");
+            bombTimer = setInterval(spawnBomb, bombInterval);
+            console.log("after the bomb has been crerated");
             setTimeout(function() {
             }, 1000);
         });
@@ -163,7 +172,7 @@ wings.setDepth(-0.1); // Ensure wings are behind the player
     });
 
 // <---------------------------------( Bombs )--------------------------------------------->
-    //bombs = this.physics.add.group();
+    bombs = this.physics.add.group();
 
 
 // <---------------------------------( Score text )--------------------------------------------->
@@ -172,9 +181,9 @@ wings.setDepth(-0.1); // Ensure wings are behind the player
 // <---------------------------------( Collisions )--------------------------------------------->
     this.physics.add.collider(player, platforms);
     this.physics.add.collider(stars, platforms);
-    //this.physics.add.collider(bombs, platforms);
+    this.physics.add.collider(bombs, platforms);
     this.physics.add.overlap(player, stars, collectStar, null, this);
-    //this.physics.add.collider(player, bombs, hitBomb, null, this);
+    this.physics.add.collider(player, bombs, hitBomb, null, this);
 
 
 // <---------------------------------( Camera follow )--------------------------------------------->
@@ -187,13 +196,17 @@ wings.setDepth(-0.1); // Ensure wings are behind the player
         restartButton.setVisible(false);
         // Add event listener for restart button
         restartButton.on('pointerdown', function() {
+                        // Button to stop the counter
+            stopCounterButton.on('pointerdown', function() {
+                clearInterval(bombTimer); // Stop the bomb spawning interval
+            });
             restartButton.setVisible(false);
             //console.log('You pressed the restart button');
             player.clearTint(); // Remove any tint that was applied
             this.physics.resume(); // Resume physics
             //player.setVelocity(0); // Reset player's velocity to zero
             gameOver = false; // Reset game over state
-            launchButton.setStyle({ backgroundColor: '#f00' }); // Reset launch button color
+            launchButton.setStyle({ backgroundColor: '#ff0' }); // Reset launch button color
         }, this); // Bind 'this' context to the current scene
 
         this.events.on('update', function () {
@@ -299,19 +312,19 @@ function collectStar (player, star) {
     score -= 550;
     scoreText.setText('Score: ' + Math.abs(score)); // Displaying the absolute value of the score
 
-    if (stars.countActive(true) === 0) {
-        stars.children.iterate(function (child) {
-            child.enableBody(true, child.x, 0, true, true);
-        });
+//     if (stars.countActive(true) === 0) {
+//         stars.children.iterate(function (child) {
+//             child.enableBody(true, child.x, 0, true, true);
+//         });
 
-        var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-        //var bomb = bombs.create(x, 16, 'bomb');
-        // bomb.setBounce(1);
-        // bomb.setCollideWorldBounds(true);
-        // bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
-        // bomb.allowGravity = false;
-    }
-}
+//         var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+//         var bomb = bombs.create(x, 16, 'bomb');
+//         bomb.setBounce(1);
+//         bomb.setCollideWorldBounds(true);
+//         bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+//         bomb.allowGravity = false;
+//     }
+// }
 
 //<----------------------------------------------------------------------( have no idea what this is )------------------------------------------------------------------------------------------------------->
 
@@ -321,3 +334,18 @@ function collectStar (player, star) {
     };
 
 
+    function spawnBomb() {
+        console.log("bomb has been crerated");
+        var x = Phaser.Math.Between(player.x - 100, player.x + 100); // Randomize x position around the player
+        var y = Phaser.Math.Between(player.y - 500, player.y - 100); // Randomize y position above the player
+        var bomb = bombs.create(x, y, 'bomb');
+        bomb.setBounce(1);
+        bomb.setCollideWorldBounds(true);
+        bomb.setVelocity(Phaser.Math.Between(-200, 200), 0); // Set horizontal velocity only
+        bomb.allowGravity = false;
+    
+        // Schedule bomb removal after duration
+        setTimeout(function() {
+            bomb.destroy();
+        }, bombDuration);
+    }};
