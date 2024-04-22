@@ -26,7 +26,6 @@ var game = new Phaser.Game(config);
 let sky;
 
 var player;
-var duck;
 var stars;
 var bombs;
 var platforms;
@@ -84,11 +83,9 @@ function preload () {
     this.load.image('launchPad', 'assets/launchPad.png');
     this.load.image('launchPad1', 'assets/launchPad1.png');
     this.load.image('catchingNet', 'assets/catchingNet.png');
-    this.load.atlas('duck', 'assets/duck/duckSpriteSheet.png', 'assets/duck/duckSpriteSheet.json');
 }
 //<00000000000000000000000000000000000000000000000000000000000000000000000000000000000( Create Game Elements  )00000000000000000000000000000000000000000000000000000000 #00E1FF 0000000000 #00E1FF 00000000>
 function create () {
-    duck = this.physics.add.sprite(400, 300, 'duck').play('idle');
 
 // <---------------------------------( Background )--------------------------------------------->
     //this.add.image(400, 300, 'sky').setDepth(-10);
@@ -124,7 +121,7 @@ leftWall.refreshBody(); // Refresh the body to apply changes
 
 
 // <---------------------------------( Player )--------------------------------------------->
-   // player = this.physics.add.sprite(400, 100, 'dude');
+    player = this.physics.add.sprite(400, 100, 'dude');
     //player.setBounce(0.2);
     this.physics.world.setBounds(0, 0, 800, 600, true, true, true, true);
   //  this.physics.world.setBounds();
@@ -140,69 +137,50 @@ leftWall.refreshBody(); // Refresh the body to apply changes
 
 //<--------------------------------------------------( Player Accessories )--------------------------------------------->
 //<----------------------------------(wings)-------------------------------------------->
-//wings = this.add.image(player.x, player.y, 'wings');
-wings = this.add.image(duck.x, duck.y, 'wings');
+wings = this.add.image(player.x, player.y, 'wings');
 wings.setDepth(-0.1); // Ensure wings are behind the player
 
 
 // <---------------------------------( Display player coordinates )--------------------------------------------->
-    let coordinatesText = this.add.text(duck.x + 50, duck.y - 50, '', { fontSize: '12px', fill: '#fff' });
-    let thrustInfoText = this.add.text(duck.x + 50, duck.y - 30, '', { fontSize: '12px', fill: '#fff' });
-    // let coordinatesText = this.add.text(player.x + 50, player.y - 50, '', { fontSize: '12px', fill: '#fff' });
-    // let thrustInfoText = this.add.text(player.x + 50, player.y - 30, '', { fontSize: '12px', fill: '#fff' });
+    let coordinatesText = this.add.text(player.x + 50, player.y - 50, '', { fontSize: '12px', fill: '#fff' });
+    let thrustInfoText = this.add.text(player.x + 50, player.y - 30, '', { fontSize: '12px', fill: '#fff' });
 
     
 // <---------------------------------( Update player coordinates )--------------------------------------------->
 this.events.on('postupdate', function () {
-        coordinatesText.setText('Player Coordinates: ' + Math.floor(duck.x / 10) + ', ' + Math.floor(duck.y / 10));
-        coordinatesText.setPosition(duck.x + 50, duck.y - 50);
+        coordinatesText.setText('Player Coordinates: ' + Math.floor(player.x / 10) + ', ' + Math.floor(player.y / 10));
+        coordinatesText.setPosition(player.x + 50, player.y - 50);
         thrustInfoText.setText('Thrust: ' + thrust);
-        thrustInfoText.setPosition(duck.x + 50, duck.y - 30); // Update the position
+        thrustInfoText.setPosition(player.x + 50, player.y - 30); // Update the position
                 // Attach the button to the player
-                restartButton.setPosition(duck.x - 35, duck.y + 30);
+                restartButton.setPosition(player.x - 35, player.y + 30);
 
-                wings.setPosition(duck.x, duck.y); // Update wings position to follow the player
-                wings.setAngle(duck.angle); // Update wings angle to match the player's angle
+                wings.setPosition(player.x, player.y); // Update wings position to follow the player
+                wings.setAngle(player.angle); // Update wings angle to match the player's angle
     });
-// this.events.on('postupdate', function () {
-//         coordinatesText.setText('Player Coordinates: ' + Math.floor(player.x / 10) + ', ' + Math.floor(player.y / 10));
-//         coordinatesText.setPosition(player.x + 50, player.y - 50);
-//         thrustInfoText.setText('Thrust: ' + thrust);
-//         thrustInfoText.setPosition(player.x + 50, player.y - 30); // Update the position
-//                 // Attach the button to the player
-//                 restartButton.setPosition(player.x - 35, player.y + 30);
-
-//                 wings.setPosition(player.x, player.y); // Update wings position to follow the player
-//                 wings.setAngle(player.angle); // Update wings angle to match the player's angle
-//     });
 
 
 // <---------------------------------( Player animations )--------------------------------------------->
-    // this.anims.create({
-    //     key: 'left',
-    //     frames: this.anims.generateFrameNumbers('dude', { start: 3, end: 0 }),
-    //     frameRate: 10,
-    //     repeat: -1
-    // });
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('dude', { start: 3, end: 0 }),
+        frameRate: 10,
+        repeat: -1
+    });
 
-    // this.anims.create({
-    //     key: 'turn',
-    //     frames: [ { key: 'dude', frame: 4 } ],
-    //     frameRate: 20
-    // });
+    this.anims.create({
+        key: 'turn',
+        frames: [ { key: 'dude', frame: 4 } ],
+        frameRate: 20
+    });
 
-    // this.anims.create({
-    //     key: 'right',
-    //     frames: this.anims.generateFrameNumbers('dude', { start: 4, end: 0 }),
-    //     frameRate: 10,
-    //     repeat: -1
-    // });
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('dude', { start: 4, end: 0 }),
+        frameRate: 10,
+        repeat: -1
+    });
 
-    
-    this.anims.create({ key: 'idle', frames: this.anims.generateFrameNames('duck', { prefix: 'idle', end:3, zeroPad:2}), repeat: -1 });
-    this.anims.create({ key: 'walking', frames: this.anims.generateFrameNames('duck', { prefix: 'walk', end:3, zeroPad:3}), repeat: -1 });
-    duck = this.physics.add.sprite(400, 300, 'duck').play('idle');
-    this.physics.add.collider(duck, platforms);
 
 // <---------------------------------( Input events )--------------------------------------------->
     cursors = this.input.keyboard.createCursorKeys();
@@ -229,9 +207,7 @@ this.events.on('postupdate', function () {
     bombs = this.physics.add.group();
     //this.physics.add.collider(player, bombs, hitBomb, null, this);
 
-    duck.previousY = player.y;
-
-    // player.previousY = player.y;
+    player.previousY = player.y;
 
 // <---------------------------------( Score text )--------------------------------------------->
     //scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
@@ -364,20 +340,14 @@ function update () {
     
     
     if (cursors.left.isDown || keyA.isDown) {
-        duck.setVelocityX(-160);
-        // player.setVelocityX(-160);
-        // player.anims.play('left', true);
-        duck.anims.play('walking', true);
+        player.setVelocityX(-160);
+        player.anims.play('left', true);
     } else if (cursors.right.isDown || keyD.isDown) {
-        duck.setVelocityX(160);
-        // player.setVelocityX(160);
-        // player.anims.play('right', true);
-        duck.anims.play('walking', true);
+        player.setVelocityX(160);
+        player.anims.play('right', true);
     } else {
         player.setVelocityX(0);
         player.anims.play('turn');
-        duck.anims.play('idle', true);
-        duck.setVelocityX(0);
     }
     
 
@@ -427,13 +397,13 @@ if (player.body.velocity.y > 0 && player.y < -50 && playerStop === false) {
     }, 2500);
 }
 
-    // if (!player.body.onFloor() && cursors.left.isDown || !player.body.onFloor() && keyA.isDown ) { // Check if the player is not on the floor and the left arrow key is pressed
-    //     player.setAngle(-45); // Rotate the player sprite 90 degrees
-    // } else if (!player.body.onFloor() && cursors.right.isDown || !player.body.onFloor() && keyD.isDown ) { // Check if the player is not on the floor and the right arrow key is pressed
-    //     player.setAngle(45); // Rotate the player sprite -90 degrees
-    // } else {
-    //     player.setAngle(0); // Reset the player sprite angle
-    // }
+    if (!player.body.onFloor() && cursors.left.isDown || !player.body.onFloor() && keyA.isDown ) { // Check if the player is not on the floor and the left arrow key is pressed
+        player.setAngle(-45); // Rotate the player sprite 90 degrees
+    } else if (!player.body.onFloor() && cursors.right.isDown || !player.body.onFloor() && keyD.isDown ) { // Check if the player is not on the floor and the right arrow key is pressed
+        player.setAngle(45); // Rotate the player sprite -90 degrees
+    } else {
+        player.setAngle(0); // Reset the player sprite angle
+    }
 
    
     player.previousY = player.y;
