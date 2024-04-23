@@ -39,6 +39,10 @@ var launchButton;
 var restartButton; // New restart button variable
 var thrust = -800;
 
+var day = 0;
+var signPost;
+var dayText;
+
 //<----------------------------------------------------------------------( wings )------------------------------------------------------------------------------------------------------------->
 var wings; // Initialize wings variable
 var wingBut; // Initialize wingBut variable
@@ -55,6 +59,8 @@ var wingBut2state = false; // Set wingBut state to false
 var wings3; // Initialize wings variable
 var wingBut3; // Initialize wingBut variable
 var wingBut3state = false; // Set wingBut state to false
+
+//<----------------------------------------------------------------------( Pads )------------------------------------------------------------------------------------------------------------->
 
 //<----------------------------------------------------------------------( Pads )------------------------------------------------------------------------------------------------------------->
 var padBut1; // Initialize wingBut variable
@@ -82,25 +88,35 @@ var bombToggler = false;
 
 var starInterval = 1500; // Interval between star spawns in milliseconds
 var starTimer;
+var duckStop = true;
 
 
 //<-----------------------------------------------------------------(Change costs easy from here)-------------------------------------------->
-var wingsCost = -2; // Set wings cost to 25
-var wings1Cost = 26; // Set wings cost to 25
-var wings2Cost = 26; // Set wings cost to 25
-var wings3Cost = 26; // Set wings cost to 25
-var launchPad1Cost = 3; // Set launch pad cost to 100
-var launchPad2Cost = 30; // Set launch pad cost to 100
-var launchPad3Cost = 50; // Set launch pad cost to 100
-var duckStop = true; 
+var wingsCost =  -1//13; // Set wings cost to 25
+var wings1Cost = -1//75; // Set wings cost to 25
+var wings2Cost = -1//600; // Set wings cost to 25
+var wings3Cost = -1//2000; // Set wings cost to 25
+var launchPad1Cost = -1//150; // Set launch pad cost to 100
+var launchPad2Cost = -1//700; // Set launch pad cost to 100
+var launchPad3Cost = -1 //4000; // Set launch pad cost to 100
 
+thrustWing1 = -1000;
+thrustWing2 = -2000;
+thrustWing3 = -3000;
+thrustPad1 = -1500;
+thrustPad2 = -2500;
+thrustPad3 = -4000;
+
+
+var bombHit = 100;
+var starHit = 100;
 
 //<----------------------------------------------------------------------( Preload Assets ) #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00 #FFFF00 >
 function preload () {
     //this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
     this.load.spritesheet('dude', 'assets/spritesheets/walk.png', { frameWidth: 64, frameHeight: 64 });
 
-    this.load.image('sky', 'assets/skybig.png');
+    this.load.image('sky', 'assets/background1.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('walls', 'assets/wall.png');
     this.load.image('star', 'assets/star.png');
@@ -117,11 +133,12 @@ function preload () {
     this.load.image('launchPad3', 'assets/launchPad3.png');
     this.load.image('catchingNet', 'assets/catchingNet.png');
     this.load.atlas('duck', 'assets/duck/duckSpriteSheet.png', 'assets/duck/duckSpriteSheet.json');
+    this.load.image('signPost', 'assets/signPost.png');
 }
 //<00000000000000000000000000000000000000000000000000000000000000000000000000000000000( Create Game Elements  )0 #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF >
 function create () {
     
-    duck = this.physics.add.sprite(0, 0, 'duck');
+    duck = this.physics.add.sprite(-150, 345, 'duck');
 
 // <---------------------------------( Background )--------------------------------------------->
     //this.add.image(400, 300, 'sky').setDepth(-10);
@@ -130,15 +147,18 @@ function create () {
 
     // <---------------------------------( Platforms )--------------------------------------------->
     platforms = this.physics.add.staticGroup();
-    platforms.create(-100, 400, 'ground').setScale(2).refreshBody();
-    platforms.create(100, 400, 'ground').setScale(2).refreshBody();
-    platforms.create(-500, 0, 'walls');
-    platforms.create(500, 0, 'walls');
+    platforms.create(-700, 560, 'ground').setScale(12).refreshBody();
+    platforms.create(700, 560, 'ground').setScale(12).refreshBody();
+    platforms.create(-1000, 0, 'walls');
+    platforms.create(1000, 0, 'walls');
     catchingNet = this.physics.add.staticGroup();
     catchingNet.create(407, 200, 'catchingNet');
 
     coin = this.add.image(-200, 400, 'coin');
-    shop1 = this.add.image(-370, 270, 'shop1');
+    shop1 = this.add.image(-300, 200, 'shop1').setScale(1);
+    shop1.setDepth(-0.1); // Ensure wings are behind the duck #FF0000
+    shop1 = this.add.image(-700, 200, 'shop1').setScale(1);
+    shop1.setDepth(-0.1); // Ensure wings are behind the duck #FF0000
     //.setScale(2).refreshBody()
     //<----------------------------------(launchPads)-------------------------------------------->
     launchPad = this.physics.add.staticGroup();
@@ -147,13 +167,13 @@ function create () {
     // launchPad2.create(0, 343, 'launchPad2');
 
 // <---------------------------------( Walls )--------------------------------------------->
-    const wall = platforms.create(500, 0, 'walls');
+    const wall = platforms.create(1000, 0, 'walls');
     wall.displayHeight = 2000 * wall.height; // Set the display height to 20 times the original height
     wall.refreshBody(); // Refresh the body to apply changes
 
-    const leftWall = platforms.create(-500, 0, 'walls'); // Create the left wall
-leftWall.displayHeight = 2000 * leftWall.height; // Set the display height to 20 times the original height
-leftWall.refreshBody(); // Refresh the body to apply changes
+    const leftWall = platforms.create(-1000, 0, 'walls'); // Create the left wall
+    leftWall.displayHeight = 2000 * leftWall.height; // Set the display height to 20 times the original height
+    leftWall.refreshBody(); // Refresh the body to apply changes
 
 
 
@@ -182,10 +202,93 @@ wings2.setDepth(-0.1); // Ensure wings are behind the duck #FF0000
 wings3 = this.add.image(duck.x, duck.y, 'wings3');
 wings3.setDepth(-0.1); // Ensure wings are behind the duck #FF0000
 
-wingBut = this.add.text(-398, 180, 'testWings', { fill: '#0f0' }).setInteractive();
-wingBut1 = this.add.text(-398, 80, 'testWings3', { fill: '#0f0' }).setInteractive();
-wingBut2 = this.add.text(-398, 90, 'testWings3', { fill: '#0f0' }).setInteractive();
-wingBut3 = this.add.text(-398, 100, 'testWings3', { fill: '#0f0' }).setInteractive();
+wingBut = this.add.text(-420, 150, 'Buy', { fill: '#0f0' }).setInteractive();
+wingBut1 = this.add.text(-420, 210, 'Buy', { fill: '#0f0' }).setInteractive();
+wingBut2 = this.add.text(-420, 270, 'Buy', { fill: '#0f0' }).setInteractive();
+wingBut3 = this.add.text(-420, 320, 'Buy', { fill: '#0f0' }).setInteractive();// Add description text
+
+
+
+wingdescriptionText = this.add.text(-458, 50, '', { fill: '#fff' });
+wingdescriptionText.setVisible(false);
+
+var wingtext = this.add.text(-380, 150, 'Cardboard Cut-Out Wings\n' + wingsCost + "€", { fill: '#fff' }).setInteractive();
+wingtext.on('pointerover', function () {
+    wingdescriptionText.setText('While studying the complex design\nof bird wings\nYou figured out how to make\nyour own wings\nout of cardboard and duct tape');
+    wingdescriptionText.setVisible(true);
+});
+wingtext.on('pointerout', function () {
+    wingdescriptionText.setVisible(false);
+});
+var wing1text = this.add.text(-380, 210, 'Tin-Foil Wings\n' + wings1Cost + "€", { fill: '#fff' }).setInteractive();
+wing1text.on('pointerover', function () {
+    wingdescriptionText.setText('Okay the cardboard wings\nwere a bit of a disaster\nBut you have a good feeling\nabout these ones\nThey are shiny after all');
+    wingdescriptionText.setVisible(true);
+});
+wing1text.on('pointerout', function () {
+    wingdescriptionText.setVisible(false);
+});
+var wing2text = this.add.text(-380, 270, 'Super-Cool Wings\n' + wings2Cost + "€", { fill: '#fff' }).setInteractive();
+wing2text.on('pointerover', function () {
+    wingdescriptionText.setText('You have been saving up for\nthese wings for a while\nThey are the best wings\nmoney can buy\nYou are sure of it');
+    wingdescriptionText.setVisible(true);
+});
+wing2text.on('pointerout', function () {
+    wingdescriptionText.setVisible(false);
+});
+var wing3text = this.add.text(-380, 320, 'Real Wings\n' + wings3Cost + "€", { fill: '#fff' }).setInteractive();
+wing3text.on('pointerover', function () {
+    wingdescriptionText.setText('Okay maybe the last wings\nwere a bit of a rip off\nBut these are the real deal\nYou are sure of it');
+    wingdescriptionText.setVisible(true);
+});
+wing3text.on('pointerout', function () {
+    wingdescriptionText.setVisible(false);
+});
+
+
+
+
+
+
+
+padBut1 = this.add.text(-800, 150, 'Buy', { fill: '#0f0' }).setInteractive();
+padBut2 = this.add.text(-800, 210, 'Buy', { fill: '#0f0' }).setInteractive();
+padBut3 = this.add.text(-800, 270, 'Buy', { fill: '#0f0' }).setInteractive();
+
+
+paddescriptionText = this.add.text(-830, 40, '', { fill: '#fff' });
+paddescriptionText.setVisible(false);
+
+var padtext = this.add.text(-700, 150, 'Fireworks\n' + launchPad1Cost + "€", { fill: '#fff' }).setInteractive();
+padtext.on('pointerover', function () {
+    paddescriptionText.setText('Sure, why not\nPlacing fireworks\nunder your feet\nIs a GREAT idea\nto make You fly\nWhat could go wrong?');
+    paddescriptionText.setVisible(true);
+});
+padtext.on('pointerout', function () {
+    paddescriptionText.setVisible(false);
+});
+var pad1text = this.add.text(-700, 210, 'TnT\n' + launchPad2Cost + "€", { fill: '#fff' }).setInteractive();
+pad1text.on('pointerover', function () {
+    paddescriptionText.setText("Ok maybe fireworks were not\nas powerful as you thought\nMaybe this time we should\ntry the real explosives\nLet's try the real deal");
+    paddescriptionText.setVisible(true);
+});
+pad1text.on('pointerout', function () {
+    paddescriptionText.setVisible(false);
+});
+var pad2text = this.add.text(-700, 270, 'More TnT\n' + launchPad3Cost + "€", { fill: '#fff' }).setInteractive();
+pad2text.on('pointerover', function () {
+    paddescriptionText.setText("If TnT are not enough,\nThe next logical step is to...\n\nAdd More TnT.\nOf course\nThis time we are going,\nTo The Moon!");
+    paddescriptionText.setVisible(true);
+});
+pad2text.on('pointerout', function () {
+    paddescriptionText.setVisible(false);
+});
+
+
+
+
+
+
 // Customize button style
 wingBut.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
 wingBut.setVisible(false); // Show button initially
@@ -255,11 +358,8 @@ this.events.on('postupdate', function () {
 
 // <---------------------------------( Bombs )--------------------------------------------->
     bombs = this.physics.add.group();
-    //this.physics.add.collider(duck, bombs, hitBomb, null, this);
 
     duck.previousY = duck.y;
-
-    // duck.previousY = duck.y;
 
 // <---------------------------------( Score text )--------------------------------------------->
     //scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
@@ -315,10 +415,7 @@ this.events.on('postupdate', function () {
             thrustInfoText.setPosition(duck.x + 50, duck.y - 30); // Update the position  
 
         });
-        padBut1 = this.add.text(-398, 202, 'testPlatform111111111', { fill: '#0f0' }).setInteractive();
-        padBut2 = this.add.text(-398, 105, 'testPlatform22222222', { fill: '#0f0' }).setInteractive();
-        padBut3 = this.add.text(-398, 125, 'testPlatform333333', { fill: '#0f0' }).setInteractive();
-           
+
         
             wingBut.on('pointerdown', function() {
                 makewings();
@@ -364,8 +461,10 @@ this.events.on('postupdate', function () {
                   padBut3state = true; // button has been pressed so - Set wingBut state to true
               });
 
-
-}
+            signPost = this.add.image(350, 325, 'signPost').setScale(1.7);
+            signPost.setDepth(-0.2); // Ensure wings are behind the duck #FF0000
+            dayText = this.add.text(315, 300, 'Day:' + day, { fontSize: '20px', fill: '#000' }); // Initialize dayText
+        }
 
 // Function to update the score based on the duck's height
 function updateScore() {
@@ -395,38 +494,38 @@ function update () {
     updateScore();
     scoreText.setText('Height: ' + score);
 
-    if (duck.x < -270 && duck.x > -460 && wingButstate === false && currency > wingsCost ){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (duck.x < -140 && duck.x > -460 && wingButstate === false && currency >= wingsCost ){  // add money requirement here to buy wings<-----------------------------------------------------
         wingBut.setVisible(true); // Show the button
     } else {
         wingBut.setVisible(false); // Hide the button
     }
     
-    if (duck.x < -270 && duck.x > -460 && wingBut1state === false && currency > wings1Cost && wings.visible){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (duck.x < -140 && duck.x > -460 && wingBut1state === false && currency >= wings1Cost && wings.visible){  // add money requirement here to buy wings<-----------------------------------------------------
         wingBut1.setVisible(true); // Show the button
     } else {
         wingBut1.setVisible(false); // Hide the button
     }
     
-    if (duck.x < -270 && duck.x > -460 && wingBut2state === false && currency > wings2Cost && wings1.visible){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (duck.x < -140 && duck.x > -460 && wingBut2state === false && currency >= wings2Cost && wings1.visible){  // add money requirement here to buy wings<-----------------------------------------------------
         wingBut2.setVisible(true); // Show the button
     } else {
         wingBut2.setVisible(false); // Hide the button
     }
     
-    if (duck.x < -270 && duck.x > -460 && wingBut3state === false && currency > wings3Cost && wings2.visible){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (duck.x < -140 && duck.x > -460 && wingBut3state === false && currency >= wings3Cost && wings2.visible){  // add money requirement here to buy wings<-----------------------------------------------------
         wingBut3.setVisible(true); // Show the button
     } else {
         wingBut3.setVisible(false); // Hide the button
     }
 
 
-    if (duck.x < -270 && duck.x > -460 && padBut1state === false && currency > launchPad1Cost){  // add money requirement here to buy wings<-----------------------------------------------------
+    if (duck.x < -530 && duck.x > -870 && padBut1state === false && currency >= launchPad1Cost){  // add money requirement here to buy wings<-----------------------------------------------------
         padBut1.setVisible(true); // Show the button
     } else {
         padBut1.setVisible(false); // Hide the button
     }
 
-    if ((duck.x < -270 && duck.x > -460 && padBut2state === false && currency > launchPad2Cost) && padBut1state === true ){  
+    if ((duck.x < -530 && duck.x > -870 && padBut2state === false && currency >= launchPad2Cost) && padBut1state === true ){  
         // Add logic to create launchPad2 here
         //makePad2();
         padBut2.setVisible(true); // Show the button
@@ -435,7 +534,7 @@ function update () {
     }
     
     
-    if ((duck.x < -270 && duck.x > -460 && padBut3state === false && currency > launchPad3Cost) && padBut2state === true){  
+    if ((duck.x < -530 && duck.x > -870 && padBut3state === false && currency >= launchPad3Cost) && padBut2state === true){  
         // Add logic to create launchPad2 here
         //makePad2();
         padBut3.setVisible(true); // Show the button
@@ -538,21 +637,24 @@ if ((duck.body.velocity.y > 0 && duck.y < -50 && duckStop === false)) {
     const cameraScrollX = this.cameras.main.scrollX;
     const cameraScrollY = this.cameras.main.scrollY;
 
-    // Set the position of the sky background to match the camera's position
-    sky.tilePositionX = cameraScrollX * 0.3; // Adjust the speed as needed
-    sky.tilePositionY = cameraScrollY * 0.3; // Adjust the speed as needed
-    sky.x = 200 + cameraScrollX;
-    sky.y = 400 + cameraScrollY;
 
+    this.events.on('postupdate', function () {
+        // Set the position of the sky background to match the camera's position
+        sky.tilePositionX = cameraScrollX * 0.3; // Adjust the speed as needed
+        sky.tilePositionY = cameraScrollY * 0.3; // Adjust the speed as needed
+        sky.x = 200 + cameraScrollX;
+        sky.y = 315 + cameraScrollY;
+    });
     // Check for overlap between duck and bombs
     var bombCollisionOccurred = false; // Flag to track bomb collision
 
     this.physics.add.collider(duck, bombs, function(duck, bomb) {
         if (!bombCollisionOccurred) { // Check if collision hasn't occurred yet
-            currency -= 10; // Subtract 100 from the currency
+            score -= bombHit; // Subtract 100 from the currency
         }
     });
-    
+    dayText.setText('Day:' + day); // Update dayText
+
 }
 //<----------------------------------------------------------------------------------------------( Update Ends ) #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000 >
 
@@ -571,7 +673,7 @@ if ((duck.body.velocity.y > 0 && duck.y < -50 && duckStop === false)) {
 //<---------------------------------------------------( Collect Stars )------------------------------>
 function collectStar (duck, star) {
     star.disableBody(true, true);
-    score += 50;
+    score += starHit;
     }
 
 
@@ -581,7 +683,7 @@ function collectStar (duck, star) {
         wings.setPosition(duck.x - 10, duck.y + 10);
         wings.setAngle(duck.angle); // Update wings angle to match the duck's angle
         wings.setVisible(true); // Show the wings
-        thrust -= 100; // Increase the score by 100
+        thrust += thrustWing1; // Increase the score by 100
         currency -= wingsCost; // Subtract the cost of the wings from the currency
         wingBut.setVisible(false); // Hide the button
     }
@@ -592,7 +694,7 @@ function collectStar (duck, star) {
         wings1.setPosition(duck.x - 10, duck.y + 10);
         wings1.setAngle(duck.angle); // Update wings angle to match the duck's angle
         wings1.setVisible(true); // Show the wings
-        thrust -= 500; // Increase the score by 100
+        thrust += thrustWing1; // Increase the score by 100
         currency -= wings1Cost; // Subtract the cost of the wings from the currency
         wingBut1.setVisible(false); // Hide the button
 
@@ -603,7 +705,7 @@ function collectStar (duck, star) {
         wings2.setPosition(duck.x - 10, duck.y + 10);
         wings2.setAngle(duck.angle); // Update wings angle to match the duck's angle
         wings2.setVisible(true); // Show the wings
-        thrust -= 700; // Increase the score by 100
+        thrust += thrustWing2; // Increase the score by 100
         currency -= wings2Cost; // Subtract the cost of the wings from the currency
         wingBut1.setVisible(false); // Hide the button
 
@@ -615,7 +717,7 @@ function collectStar (duck, star) {
         wings3.setPosition(duck.x - 10, duck.y + 10);
         wings3.setAngle(duck.angle); // Update wings angle to match the duck's angle
         wings3.setVisible(true); // Show the wings
-        thrust -= 800; // Increase the score by 100
+        thrust += thrustWing3; // Increase the score by 100
         currency -= wings3Cost; // Subtract the cost of the wings from the currency
         wingBut3.setVisible(false); // Hide the button
 
@@ -629,7 +731,7 @@ function makePad() {
     launchPad.getChildren().forEach(function(child) {
         child.setTexture('launchPad1');
     });
-    thrust -= 2000;
+    thrust += thrustPad1;
     currency -= launchPad1Cost;
     padBut1.setVisible(false); 
 }
@@ -638,7 +740,7 @@ function makePad() {
          launchPad.getChildren().forEach(function(child) {
              child.setTexture('launchPad2');
          });
-         thrust -= 3000;
+         thrust += thrustPad2;
          currency -= launchPad2Cost;
          padBut2.setVisible(false); 
      }
@@ -648,7 +750,7 @@ function makePad() {
          launchPad.getChildren().forEach(function(child) {
              child.setTexture('launchPad3');
          });
-         thrust -= 4000;
+         thrust += thrustPad3;
          currency -= launchPad3Cost;
          padBut3.setVisible(false); 
      }
@@ -710,4 +812,7 @@ function makePad() {
         if (restartButton.visible === false){
             restartButton.setVisible(true);
         };
+        day += 1;
+        console.log(day);
+
     }
