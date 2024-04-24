@@ -6,11 +6,28 @@
     <title>Document</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" href="">
-
+    <style>
+        /* CSS to hide the menu */
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <script src="phaser/phaser.min.js"></script>
-    <script src="js/js _copy_old_opy_new.js"></script>
-    <!-- <button class="restartB" > this is a button</button> -->
+    <div class="menu" id="menu">
+        <button id="startButton" class="startB">Start Game</button>
+    </div>
+    <script src="phaser/phaser.min.js">  </script>  
+    <script>
+        function loadGameScript() {
+            var script = document.createElement('script');
+            script.src = 'js/js _copy_old_opy_new.js';
+            document.body.appendChild(script);
+            // Hide the menu after clicking Start Game button
+            document.getElementById('menu').classList.add('hidden');
+        }
+
+        document.getElementById('startButton').addEventListener('click', loadGameScript);
+    </script>
 </body>
 </html>

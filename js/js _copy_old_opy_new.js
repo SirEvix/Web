@@ -24,6 +24,8 @@ var game = new Phaser.Game(config);
 
 //<----------------------------------------------------------------------( Global Variables )------------------------------------------------------------------------------------------------------------->
 let sky;
+let bg1, bg2, bg3, bg4;
+
 
 var duck;
 var stars;
@@ -89,27 +91,37 @@ var bombToggler = false;
 var starInterval = 1500; // Interval between star spawns in milliseconds
 var starTimer;
 var duckStop = true;
-
+var dayStop = true;
 
 //<-----------------------------------------------------------------(Change costs easy from here)-------------------------------------------->
-var wingsCost =  -1//13; // Set wings cost to 25
-var wings1Cost = -1//75; // Set wings cost to 25
-var wings2Cost = -1//600; // Set wings cost to 25
-var wings3Cost = -1//2000; // Set wings cost to 25
-var launchPad1Cost = -1//150; // Set launch pad cost to 100
-var launchPad2Cost = -1//700; // Set launch pad cost to 100
-var launchPad3Cost = -1 //4000; // Set launch pad cost to 100
+var wingsCost =  13; // Set wings cost to 25
+var wings1Cost = 300; // Set wings cost to 25
+var wings2Cost = 600; // Set wings cost to 25
+var wings3Cost = 2000; // Set wings cost to 25
+var launchPad1Cost = 75; // Set launch pad cost to 100
+var launchPad2Cost = 1000; // Set launch pad cost to 100
+var launchPad3Cost = 4000; // Set launch pad cost to 100
 
-thrustWing1 = -1000;
-thrustWing2 = -2000;
-thrustWing3 = -3000;
-thrustPad1 = -1500;
-thrustPad2 = -2500;
-thrustPad3 = -4000;
+thrustWing1 = -500;
+thrustWing2 = -1000;
+thrustWing3 = -2000;
+thrustPad1 = -1000;
+thrustPad2 = -2000;
+thrustPad3 = -10000;
 
 
 var bombHit = 100;
 var starHit = 100;
+
+
+var song1;
+var song2;
+var song3;
+var songChanger = false;
+
+var coords = false;
+var coordsbutton;
+var coordsclicks = 0;
 
 //<----------------------------------------------------------------------( Preload Assets ) #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00  #FFFF00 #FFFF00 >
 function preload () {
@@ -124,8 +136,8 @@ function preload () {
     this.load.image("shop1", "assets/shop1.png");
     this.load.image('wings', 'assets/wings.png');
     this.load.image('wings1', 'assets/wings1.png');
-    this.load.image('wings2', 'assets/wings2.png');
-    this.load.image('wings3', 'assets/wings3.png');
+    this.load.image('wings2', 'assets/wings3.png');
+    this.load.image('wings3', 'assets/wings2.png');
     this.load.image('coin', 'assets/coin.png');
     this.load.image('launchPad', 'assets/launchPad.png');
     this.load.image('launchPad1', 'assets/launchPad1.png');
@@ -134,12 +146,28 @@ function preload () {
     this.load.image('catchingNet', 'assets/catchingNet.png');
     this.load.atlas('duck', 'assets/duck/duckSpriteSheet.png', 'assets/duck/duckSpriteSheet.json');
     this.load.image('signPost', 'assets/signPost.png');
+    this.load.audio('song1', 'assets/audio/song1.mp3');
+    this.load.audio('song2', 'assets/audio/song2.mp3');
+    this.load.audio('song3', 'assets/audio/song3.mp3');
+
+
+    this.load.image('bg1', 'assets/bg1.png');
+    this.load.image('bg2', 'assets/bg2.png');
+    this.load.image('bg3', 'assets/bg3.png');
+    this.load.image('bg4', 'assets/bg4.png');
+
 }
 //<00000000000000000000000000000000000000000000000000000000000000000000000000000000000( Create Game Elements  )0 #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF  #00E1FF >
 function create () {
-    
-    duck = this.physics.add.sprite(-150, 345, 'duck');
+    bg1 = this.add.image(400, 300, 'bg1').setDepth(-10).setVisible(false);
+    bg2 = this.add.image(400, 300, 'bg2').setDepth(-10).setVisible(false);
+    bg3 = this.add.image(400, 300, 'bg3').setDepth(-10).setVisible(false);
+    bg4 = this.add.image(400, 300, 'bg4').setDepth(-10).setVisible(false);
 
+
+
+    duck = this.physics.add.sprite(190, 290, 'duck');
+    this.add.image(480, 274, 'ground').setScale(0.5) .angle = 90;
 // <---------------------------------( Background )--------------------------------------------->
     //this.add.image(400, 300, 'sky').setDepth(-10);
     sky = this.add.tileSprite(0, 0, 900, 1000, 'sky');
@@ -188,8 +216,24 @@ function create () {
         
         launchButton.on('pointerdown', function() {
             launching();
+            song1.stop();
+            if (songChanger === false) {
+            song2.play();
+            }else{
+                song3.play();
+            }
         });
 
+        coordsbutton = this.add.text(310, 290, '       \n      ', { fill: 'brown' }).setInteractive();
+        coordsbutton.setStyle({ backgroundColor: '#ff0', borderRadius: '15px' });
+        coordsbutton.setDepth(-0.2); // Ensure wings are behind the duck #FF0000
+        coordsbutton.on('pointerdown', function() {
+            coordsclicks += 1;
+            if (coordsclicks > 9) {
+                coords = true;
+            }else{
+                coords = false;
+            }});
 
 //<--------------------------------------------------( duck Accessories )--------------------------------------------->
 //<----------------------------------(wings)-------------------------------------------->
@@ -304,19 +348,31 @@ wings2.setVisible(false); // Hide wings initially
 wings3.setVisible(false); // Hide wings initially
 // <---------------------------------( Display duck coordinates )--------------------------------------------->
     let coordinatesText = this.add.text(duck.x + 50, duck.y - 50, '', { fontSize: '12px', fill: '#fff' });
+    coordinatesText.setVisible(false); // Hide coordinates text initially
     let thrustInfoText = this.add.text(duck.x + 50, duck.y - 30, '', { fontSize: '12px', fill: '#fff' });
+    thrustInfoText.setVisible(false); // Hide coordinates text initially
     let velocityInfoText = this.add.text(duck.x + 50, duck.y - 10, '', { fontSize: '12px', fill: '#fff' });
+    velocityInfoText.setVisible(false); // Hide coordinates text initially
 
     
 // <---------------------------------( Update duck coordinates )--------------------------------------------->
 this.events.on('postupdate', function () {
+    if (coords === true) {
+        coordinatesText.setVisible(true);
+        thrustInfoText.setVisible(true);
+        velocityInfoText.setVisible(true);
+
         coordinatesText.setText('duck Coordinates: ' + Math.floor(duck.x / 10) + ', ' + Math.floor(duck.y / 10));
         coordinatesText.setPosition(duck.x + 50, duck.y - 50);
         thrustInfoText.setText('Thrust: ' + thrust);
         thrustInfoText.setPosition(duck.x + 50, duck.y - 30); // Update the position
         velocityInfoText.setText('Velocity: ' + Math.abs(duck.body.velocity.y));
         velocityInfoText.setPosition(duck.x + 50, duck.y - 10); // Update the position
-
+    }else{
+        coordinatesText.setVisible(false);
+        thrustInfoText.setVisible(false);
+        velocityInfoText.setVisible(false);
+    }
         // Attach the button to the duck
         restartButton.setPosition(duck.x - 35, duck.y + 30);
 
@@ -404,7 +460,8 @@ this.events.on('postupdate', function () {
             scoreText.setText('Height: ' + score);
             updateCurrency();
             restartButton.setVisible(false);
-
+            
+            song1.play();
         }, this); // Bind 'this' context to the current scene
 
         this.events.on('update', function () {
@@ -464,6 +521,12 @@ this.events.on('postupdate', function () {
             signPost = this.add.image(350, 325, 'signPost').setScale(1.7);
             signPost.setDepth(-0.2); // Ensure wings are behind the duck #FF0000
             dayText = this.add.text(315, 300, 'Day:' + day, { fontSize: '20px', fill: '#000' }); // Initialize dayText
+
+
+
+            song1 = this.sound.add('song1'),song1.play(), song1.setVolume(1), song1.setLoop(true);
+            song2 = this.sound.add('song2'),song2.stop(), song2.setVolume(1), song2.setLoop(true);
+            song3 = this.sound.add('song3'),song3.stop(), song3.setVolume(1), song3.setLoop(true);
         }
 
 // Function to update the score based on the duck's height
@@ -618,6 +681,11 @@ if ((duck.body.velocity.y > 0 && duck.y < -50 && duckStop === false)) {
                 });
             }
         });
+        if (songChanger === false) {
+            song2.stop();
+        }else{
+            song3.stop();
+        }
     }, 2500);
 }
 
@@ -655,6 +723,20 @@ if ((duck.body.velocity.y > 0 && duck.y < -50 && duckStop === false)) {
     });
     dayText.setText('Day:' + day); // Update dayText
 
+    if (day === 1 && dayStop === true) {
+        dayStop = false;
+        console.log('Day 1');
+    }
+
+    if (duck.y < -150 && duck.y > -75000) {
+        sky.setTexture('bg1'); // Change the texture to 'bg1'
+    } else if (duck.y <= -75000 && duck.y >= -100000) { //cool wings + tnt (12000m)   (16650m realwings + tnt) 
+        sky.setTexture('bg2'); // Change the texture to 'bg2'
+    } else if (duck.y <= -100000) {
+        sky.setTexture('bg3'); // Change the texture to 'bg3'
+    } else {
+        sky.setTexture('sky'); // Change the texture to 'bg4'
+    }
 }
 //<----------------------------------------------------------------------------------------------( Update Ends ) #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000  #FF0000 >
 
@@ -700,6 +782,8 @@ function collectStar (duck, star) {
 
         wings.setVisible(false);
 
+
+
     }
     function makewings2() {
         wings2.setPosition(duck.x - 10, duck.y + 10);
@@ -708,9 +792,9 @@ function collectStar (duck, star) {
         thrust += thrustWing2; // Increase the score by 100
         currency -= wings2Cost; // Subtract the cost of the wings from the currency
         wingBut1.setVisible(false); // Hide the button
-
         wings1.setVisible(false);
 
+        songChanger = true;
     }
     
     function makewings3() {
