@@ -127,7 +127,7 @@ var coordsclicks = 0;
 function preload () {
     //this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
     this.load.spritesheet('dude', 'assets/spritesheets/walk.png', { frameWidth: 64, frameHeight: 64 });
-
+ 
     this.load.image('sky', 'assets/background1.png');
     this.load.image('ground', 'assets/platform.png');
     this.load.image('walls', 'assets/wall.png');
