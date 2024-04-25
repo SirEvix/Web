@@ -134,10 +134,10 @@ function preload () {
     this.load.image('star', 'assets/star.png');
     this.load.image('bomb', 'assets/bomb.png');
     this.load.image("shop1", "assets/shop1.png");
-    this.load.image('wings', 'assets/wings.png');
-    this.load.image('wings1', 'assets/wings1.png');
-    this.load.image('wings2', 'assets/wings3.png');
-    this.load.image('wings3', 'assets/wings2.png');
+    this.load.image('wings', 'assets/bwings.png');
+    this.load.image('wings1', 'assets/bwings1.png');
+    this.load.image('wings2', 'assets/bwings3.png');
+    this.load.image('wings3', 'assets/bwings2.png');
     this.load.image('coin', 'assets/coin.png');
     this.load.image('launchPad', 'assets/launchPad.png');
     this.load.image('launchPad1', 'assets/launchPad1.png');
